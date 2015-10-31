@@ -3,9 +3,12 @@ type triangle = {p1 : point ; p2 : point ; p3 : point};;
 type point_set = point list;;
 type triangle_set = triangle list;;
 
+let make_point x y = {x = x; y =y};;
+let make_triangle p1 p2 p3 = {p1 = p1; p2 = p2; p3 = p3};;
+
 let rec random nb max_x max_y = match nb with
   |0->[]
-  |_->{x=float(Random.int(max_x));y=float(Random.int(max_y))}::(random (nb-1) max_x max_y);;
+  |_-> (make_point float(Random.int(max_x)) float(Random.int(max_y)))::(random (nb-1) max_x max_y);;
 
 let del_first_column mat =
   let n = Array.length mat in
@@ -82,5 +85,6 @@ let add_point triangles point =
     let del_set_border = border del_set in
     let rec add_triangles segments t_set p = match segments with
          [] -> t_set
-        |(f,s)::t -> {p1 = f; p2 = s; p3 = p}::(add_triangles t t_set p) in
+        |(f,s)::t -> (make_triangle f s p)::(add_triangles t t_set p) in
     add_triangles del_set_border remain_set point;;
+

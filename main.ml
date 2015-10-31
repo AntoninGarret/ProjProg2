@@ -8,7 +8,7 @@ let make_triangle p1 p2 p3 = {p1 = p1; p2 = p2; p3 = p3};;
 
 let rec random nb max_x max_y = match nb with
   |0->[]
-  |_-> (make_point float(Random.int(max_x)) float(Random.int(max_y)))::(random (nb-1) max_x max_y);;
+  |_-> (make_point (float(Random.int(max_x))) (float(Random.int(max_y))))::(random (nb-1) max_x max_y);;
 
 let del_first_column mat =
   let n = Array.length mat in
@@ -87,4 +87,14 @@ let add_point triangles point =
          [] -> t_set
         |(f,s)::t -> (make_triangle f s p)::(add_triangles t t_set p) in
     add_triangles del_set_border remain_set point;;
+    
+let delaunay (points:point_set) max_x max_y =
+    let xmax, ymax  = float(max_x), float(max_y) in
+    let bl_point, tl_point, tr_point, br_point = make_point 0. 0., make_point 0. ymax, 
+                                                 make_point xmax ymax, make_point xmax 0. in
+    let delaunay_set = [make_triangle bl_point  tl_point  br_point; make_triangle tl_point tr_point br_point] in
+    let rec aux points_to_add triangles = match points_to_add with
+         [] -> triangles
+        |h::t -> aux t (add_point triangles h) in
+    aux points delaunay_set;;
 

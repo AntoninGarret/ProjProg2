@@ -4,7 +4,7 @@
 
 let norm d p =
 (* int -> float array -> float
-   calculates the euclidian norm of point p belonging to a d-dimensional space *)
+   calculates the square of the euclidian norm of point p belonging to a d-dimensional space *)
   let r = ref 0. in
   for i = 0 to d-1 do
     r:= !r+.p.(i)**2.
@@ -53,10 +53,10 @@ let ccw d points =
    calculates the determinant of a matrix determined by the d+1 vertices of a simplex, used later to determine if a point is inside the hemisphere of said simplex *)
   let mat = Array.make_matrix d d 0. in
   let a=points.(0) in
-  for i = 1 to d do
+  for i = 1 to d-1 do
     for j = 0 to d-1 do
       mat.(i).(j)<- points.(i).(j)-.a.(j)
-    done
+    done9
   done;
   det mat > 0.;;
 
@@ -77,7 +77,7 @@ let in_sphere d simplex p =
   if ccw d simplex then 
     ((-1.)**float_of_int(d))*.(det mat) > 0.
   else 
-    ((-1.)**float_of_int(d))*.(det mat) > 0.;;
+    ((-1.)**float_of_int(d))*.(det mat) < 0.;;
 
 let rec search e l = match l with
   (* 'a -> 'a list -> bool
@@ -124,13 +124,14 @@ let border d simplexes =
   in
   border_hyperfaces (make_list_hyperfaces simplexes);;
 
-let rec delete_simplexes d simplexes point = match simplexes with
+let rec delete_simplexes d simplexes point =
   (* int -> float array array list -> float array -> (float array array list) * (float array array list)
      given the dimension d in which we're working, a set of simplexes and a point, returns both the list of simplexes which hemisphere contains the point and the list of simplexes which hemisphere does not *)
-  |[] -> ([],[])
-  |h::t -> let (del_set, remain_set) = delete_simplexes d t point in
-	   if in_sphere d h point then (h::del_set,remain_set)
-	   else (del_set, h::remain_set);;
+  match simplexes with
+    |[] -> ([],[])
+    |h::t -> let (del_set, remain_set) = delete_simplexes d t point in
+	     if in_sphere d h point then (h::del_set,remain_set)
+	     else (del_set, h::remain_set);;
 
 let make_simplex d point hyperface = 
   (* int -> float array -> float array list -> float array array

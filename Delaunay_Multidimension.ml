@@ -1,4 +1,9 @@
+(* file for the functions that create a delaunay triangulation in arbitrary dimenson d *)
+(* the aim is similar to the triangulation in 2D, except now we use simplexes and not triangles, and a point in the given set must not be located inside the hemisphere of a simplex in the ibtained triangulation *)
+(* points are represented by the array of their coordinates, simplexes are array of points of length d+1, hyperfaces of those simplexes are represented but the list of their vertices *)
+
 let norm d p =
+(* calculates the euclidian norm of point p belonging to a d-dimensional space *)
   let r = ref 0. in
   for i = 0 to d-1 do
     r:= !r+.p.(i)**2.
@@ -6,6 +11,7 @@ let norm d p =
   !r;;
 
 let del_first_column mat =
+(* deletes the first column of the given matrice, used later to calcuate determinant *)
   let n = Array.length mat in
   let a = Array.make_matrix n (n-1) 0. in
   for i = 0 to n-1 do 
@@ -14,6 +20,7 @@ let del_first_column mat =
   a;;
 
 let del_line i mat =
+(* deletes the first line of given matrice *)
   let n = Array.length mat in
   let a = Array.make_matrix (n-1) (n-1) 0. in
   for j=0 to i-1 do
@@ -25,6 +32,7 @@ let del_line i mat =
   a;;
 
 let rec det mat = match Array.length mat with
+(*calculates the determinant of given matrice *)
   |1-> mat.(0).(0)
   |n-> let r = ref 0. in
        for i = 0 to n-1 do
@@ -37,6 +45,7 @@ let rec det mat = match Array.length mat with
 
 
 let ccw d points = 
+(* calculates the determinant of a matrice determined by the d+1 vertices of a simplex, used later to determine if a point is inside the hemisphere of said simplex *)
   let mat = Array.make_matrix d d 0. in
   let a=points.(0) in
   for i = 1 to d do
@@ -47,6 +56,7 @@ let ccw d points =
   det mat > 0.;;
 
 let in_sphere d simplex p =
+(* determines whether point p is inside the hemisphere of given simplex (working in dimension d)*)
   let mat = Array.make_matrix (d+2) (d+2) 1. in
   for i = 0 to d do
     for j = 0 to d-1 do
@@ -68,17 +78,19 @@ let rec search e l = match l with
   |t::h->if t=e then true else search e h;;
 
 let rec equal l1 l2 = match l1 with
-  (*it actually tests the inclusion of the first list into the other one, but it's gonna be used on same-sized lists so it's the same as equality*)
+  (*it actually tests the inclusion of the first list into the other one, but it is going to be used on same-sized lists so it is the same as equality*)
   |[]->true
   |t::h-> if search t l2 then equal h l2 else false;;
 
 let rec search_and_delete e l = match l with
+(* determines whether element e is in list l and returns the list l without any occurence of e *)
   |[]-> (false,[])
   |h::t-> let (b,tl)=search_and_delete e t in
 	  if equal e h then (true,tl)
 	  else (b,h::tl);;
 
 let border d simplexes = 
+(* finds the border of a set of simplexes that forms a convex zone of the d-dimensional space *)
   let rec make_list_hyperfaces simplexes = match simplexes with
     |[]->[]
     |simplex::t-> let l = ref [] in
@@ -102,12 +114,14 @@ let border d simplexes =
   border_hyperfaces (make_list_hyperfaces simplexes);;
 
 let rec delete_simplexes d simplexes point = match simplexes with
+(* given the dimension d in which we're working, a set of simplexes and a point, returns both the list of simplexes which hemisphere contains the point and the list of simplexes which hemisphere does not *)
   |[] -> ([],[])
   |h::t -> let (del_set, remain_set) = delete_simplexes d t point in
 	   if in_sphere d h point then (h::del_set,remain_set)
 	   else (del_set, h::remain_set);;
 
 let make_simplex d point hyperface = 
+(* given an hyperface and a point, returns the simplexe which vertices are the d vertices of the hyperface and said point *)
   let rec add_points_to_simplex i l a = match l with
     |[]->()
     |h::t->a.(i)<-h;
@@ -119,6 +133,7 @@ let make_simplex d point hyperface =
   simplex;;
 
 let add_point d simplexes point = 
+(* given a triangulation represented by the set of simplexes and a new point, returns the new triangulation taking the new point into account *)
   let (del_set,remain_set) = delete_simplexes d simplexes point in
   let del_set_border = border d del_set in
   let rec add_simplexes hyperfaces simplexes point =  match hyperfaces with
@@ -128,6 +143,7 @@ let add_point d simplexes point =
   add_simplexes del_set_border remain_set point;;
 
 let add_coordinate position value point = 
+(* add a coordinate of given value to a given point, in a given position, so as to transform it into a point of a space of superior dimension *)
   let d = Array.length point in
   let new_point = Array.make (d+1) 0. in
   for i = 0 to d do
@@ -138,6 +154,7 @@ let add_coordinate position value point =
   new_point;;
 
 let rec starting_simplexes d size = 
+(* creates the simplexes the algorithm will start with, considering that all given points are in a d-hypercube which edges are of size 2*(given size)*)
   if d = 2 then [[|[|size;size|];[|-.size;size|];[|size;-.size|]|];[|[|-.size;-.size|];[|-.size;size|];[|size;-.size|]|]]
   else
     let rec create_hyperfaces position l = match l with
@@ -162,6 +179,7 @@ let rec starting_simplexes d size =
     make_simplexes (!hyperfaces);;
 
 let delaunay d size points =
+(* the main function, creates a delaunay triangulation from a set of d-dimensional points and half the size of the edges of the d-hypercube centered on zero and containing all given points *)
   let delaunay_set = starting_simplexes d size in
   let rec aux points_to_add simplexes = match points_to_add with
     |[]-> simplexes

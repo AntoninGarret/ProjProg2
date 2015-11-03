@@ -14,7 +14,7 @@ let rec random nb max_x max_y = match nb with
 
 let del_first_column mat =
 (* 'a array array -> 'a array array
-   deletes the first column of the given matrice, used later to calcuate determinant *)
+   deletes the first column of the given matrix, used later to calcuate determinant *)
   let n = Array.length mat in
   let a = Array.make_matrix n (n-1) 0. in
   for i = 0 to n-1 do 
@@ -24,7 +24,7 @@ let del_first_column mat =
 
 let del_line i mat =
 (* 'a array array -> 'a array array
-deletes the first line of given matrice *)
+deletes the first line of given matrix *)
   let n = Array.length mat in
   let a = Array.make_matrix (n-1) (n-1) 0. in
   for j=0 to i-1 do
@@ -37,7 +37,7 @@ deletes the first line of given matrice *)
 
 let rec det mat = match Array.length mat with
 (* float array array -> float
-  calculates the determinant of given matrice *)
+  calculates the determinant of given matrix *)
   |1-> mat.(0).(0)
   |n-> let r = ref 0. in
        for i = 0 to n-1 do

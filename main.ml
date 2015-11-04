@@ -54,24 +54,26 @@ let in_circle triangle point =
   else 
     det mat1 < 0.;;
 
-let equal_edges (a,b) (c,d) = (a=b && c=d) || (a=d && b=c);;
+let equal_edges (a,b) (c,d) = (a.x=c.x && a.y=c.y && b.x=d.x && b.y=d.y) || (a.x=d.x && a.y=d.y && b.x=c.x && b.y=c.y);;
 
 let rec search_and_delete (e:point*point) l = match l with
   |[]-> (false,[])
   |h::t->let(b,tl)=search_and_delete e t in
 	 if equal_edges h e then (true,tl) else (b,h::tl);;
 
-let border triangles = 
+let border (triangles:triangle_set) = 
   let rec make_list_edges triangles = match triangles with
     |[]->[]
     |h::t-> (h.p1,h.p2)::(h.p2,h.p3)::(h.p1,h.p3)::(make_list_edges t) 
   in
   let rec border_edges edges = match edges with
     |[]->[]
-    |h::t->let (b,tl)=search_and_delete h t in border_edges tl
+    |h::t->let (b,tl)=search_and_delete h t in 
+	   let be = border_edges tl in
+	   if b then be
+	   else h::be
   in
   border_edges (make_list_edges triangles);;
-
   
 let rec delete_triangles (triangles:triangle_set) point = match triangles with
      [] -> ([]:triangle_set), triangles
@@ -84,17 +86,35 @@ let add_point triangles point =
     let del_set, remain_set = delete_triangles triangles point in
     let del_set_border = border del_set in
     let rec add_triangles segments t_set p = match segments with
+
          [] -> t_set
         |(f,s)::t -> (make_triangle f s p)::(add_triangles t t_set p) in
     add_triangles del_set_border remain_set point;;
     
-let delaunay (points:point_set) max_x max_y =
+let start_triangles max_x max_y =
     let xmax, ymax  = float(max_x), float(max_y) in
     let bl_point, tl_point, tr_point, br_point = make_point 0. 0., make_point 0. ymax, 
                                                  make_point xmax ymax, make_point xmax 0. in
-    let delaunay_set = [make_triangle bl_point  tl_point  br_point; make_triangle tl_point tr_point br_point] in
+    [make_triangle bl_point  tl_point  br_point; make_triangle tl_point tr_point br_point];;
+    
+let delaunay (points:point_set) max_x max_y =
+	let delaunay_set = start_triangles max_x max_y in
     let rec aux points_to_add triangles = match points_to_add with
          [] -> triangles
         |h::t -> aux t (add_point triangles h) in
     aux points delaunay_set;;
-
+    
+let delaunay_no_border_points points max_x max_y =
+	let xmax, ymax  = float(max_x), float(max_y) in
+    let is_border_point p = (p.x = 0. && p.y = 0.)
+						 || (p.x = 0. && p.y = ymax)
+						 || (p.x = xmax && p.y = ymax)
+						 || (p.x = xmax && p.y = 0.) in
+	let has_border_point t = is_border_point t.p1
+						  || is_border_point t.p2
+						  || is_border_point t.p3 in
+	let rec delete_border_points (triangles:triangle_set) = match triangles with
+		 [] -> []
+		|h::t when has_border_point h -> delete_border_points t
+		|h::t -> h::(delete_border_points t) in
+	delete_border_points (delaunay points max_x max_y);;

@@ -1,27 +1,39 @@
 #load "graphics.cma";;
-open Graphics;;
-close_graph();;
-open_graph " 800x600_0+0";;
-
 #use "main.ml";;
 
-let draw_points (points:point_set) = 
-    let rec aux = function
+open Graphics;;
+close_graph();;
+open_graph "";;
+
+set_line_width 1;;
+set_color black;;
+
+let rec draw_points (points:point_set) = match points with
          [] -> ();
-        |h::t -> plot (int_of_float  h.x) (int_of_float h.y);
-                 aux t in
-    set_color red;
-    set_line_width 2;
-    aux points;;
+        |h::t -> draw_circle (int_of_float  h.x) (int_of_float h.y) 1;
+                 draw_points t;;
     
-let draw_triangles (triangles:triangle_set) =
-    let rec aux = function
+let rec draw_triangles (triangles:triangle_set) = match triangles with
          [] -> ()
-        |h::t -> moveto (int_of_float h.p1.x) (int_of_float h.p1.y);
-                 rlineto (int_of_float h.p2.x) (int_of_float h.p2.y);
-                 rlineto (int_of_float h.p3.x) (int_of_float h.p3.y);
-                 rlineto (int_of_float h.p1.x) (int_of_float h.p1.y);
-                 aux t in
-    set_color black;
-    set_line_width 1;
-    aux triangles;;
+        |h::t -> draw_poly [|(int_of_float (h.p1.x),int_of_float(h.p1.y));
+                             (int_of_float (h.p2.x),int_of_float(h.p2.y));
+                             (int_of_float (h.p3.x),int_of_float(h.p3.y))|];
+                 draw_triangles t;;
+                 
+let delaunay_step_by_step points max_x max_y =
+    let pop l = match !l with
+	[] -> failwith "liste vide"
+       |h::t -> l := t;
+	        h in
+    let delaunay_set = ref (start_triangles max_x max_y)
+    and points_to_add = ref points in
+    while !points_to_add <> [] do
+        draw_triangles !delaunay_set;
+        Unix.sleep 1;
+	clear_graph();
+        delaunay_set := add_point (!delaunay_set) (pop points_to_add);
+    done;
+    draw_triangles (!delaunay_set);;
+
+let points = random 100 600 450;;
+delaunay_step_by_step points 600 450;;

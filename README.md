@@ -1,5 +1,6 @@
 # ProjProg2
 Repository for Programmation Project about Delaunay Triangulation
+Rights to Antonin Garret and Nathan Thomasset
 
 main.ml contient les instructions de base pour la triangulation de delaunay ainsi que la triangulation sans points extremaux
 graphics.ml contient les instructions relatives à l'affichage de la triangulation et l'affichage étape par étape de la triangulation

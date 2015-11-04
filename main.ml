@@ -90,6 +90,9 @@ let border (triangles:triangle_set) =
   border_edges (make_list_edges triangles);;
   
 let rec delete_triangles (triangles:triangle_set) point = match triangles with
+  (*triangle_set -> point -> triangles_set * triangle_set
+   returns the triangles to delete when adding point to the triangulation in del_set 
+   and the remaining triangles in remain_set*)
   |[] -> ([]:triangle_set), triangles
   |h::t when in_circle h point -> let del_set, remain_set = delete_triangles t point in
                                   h::del_set, remain_set
@@ -106,6 +109,8 @@ let add_point triangles point =
     add_triangles del_set_border remain_set point;;
     
 let start_triangles max_x max_y =
+	(*int -> int -> triangle_set
+	  returns a triangulation formed by the four border points*)
     let xmax, ymax  = float(max_x), float(max_y) in
     let bl_point, tl_point, tr_point, br_point = make_point 0. 0., make_point 0. ymax, 
                                                  make_point xmax ymax, make_point xmax 0. in
@@ -119,15 +124,25 @@ let delaunay (points:point_set) max_x max_y =
     aux points delaunay_set;;
     
 let delaunay_no_border_points points max_x max_y =
+	(*point_set -> int -> int -> triangle_set
+	 returns the delaunay triangulation for points without adding border points*)
 	let xmax, ymax  = float(max_x), float(max_y) in
-    let is_border_point p = (p.x = 0. && p.y = 0.)
-						 || (p.x = 0. && p.y = ymax)
-						 || (p.x = xmax && p.y = ymax)
-						 || (p.x = xmax && p.y = 0.) in
-	let has_border_point t = is_border_point t.p1
-						  || is_border_point t.p2
-						  || is_border_point t.p3 in
+    let is_border_point p =
+    (*point -> bool
+     returns true if p is a border point*)
+		   (p.x = 0. && p.y = 0.)
+		|| (p.x = 0. && p.y = ymax)
+		|| (p.x = xmax && p.y = ymax)
+		|| (p.x = xmax && p.y = 0.) in
+	let has_border_point t = 
+	(*triangle -> bool
+      returns true t contains a summit that is a border point*)
+		   is_border_point t.p1
+		|| is_border_point t.p2
+		|| is_border_point t.p3 in
 	let rec delete_border_points (triangles:triangle_set) = match triangles with
+	(*triangle_set -> triangle_set
+	  delete all triangles in triangles that contain border points*)
 		 [] -> []
 		|h::t when has_border_point h -> delete_border_points t
 		|h::t -> h::(delete_border_points t) in

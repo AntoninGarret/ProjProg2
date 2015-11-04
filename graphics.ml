@@ -35,6 +35,3 @@ let delaunay_step_by_step points max_x max_y =
         delaunay_set := add_point (!delaunay_set) (pop points_to_add);
     done;
     draw_triangles (!delaunay_set);;
-
-let points = random 100 600 450;;
-delaunay_step_by_step points 600 450;;

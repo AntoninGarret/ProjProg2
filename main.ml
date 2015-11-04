@@ -1,3 +1,5 @@
+(* functions that are not detailed match the description given by the subject *)
+
 type point = {x : float ; y : float};;
 type triangle = {p1 : point ; p2 : point ; p3 : point};;
 type point_set = point list;;
@@ -11,6 +13,8 @@ let rec random nb max_x max_y = match nb with
   |_-> (make_point (float(Random.int(max_x))) (float(Random.int(max_y))))::(random (nb-1) max_x max_y);;
 
 let del_first_column mat =
+(* 'a array array -> 'a array array
+   deletes the first column of the given matrix, used later to calcuate determinant *)
   let n = Array.length mat in
   let a = Array.make_matrix n (n-1) 0. in
   for i = 0 to n-1 do 
@@ -19,6 +23,8 @@ let del_first_column mat =
   a;;
 
 let del_line i mat =
+(* 'a array array -> 'a array array
+deletes the first line of given matrix *)
   let n = Array.length mat in
   let a = Array.make_matrix (n-1) (n-1) 0. in
   for j=0 to i-1 do
@@ -30,6 +36,8 @@ let del_line i mat =
   a;;
 
 let rec det mat = match Array.length mat with
+(* float array array -> float
+  calculates the determinant of given matrix *)
   |1-> mat.(0).(0)
   |n-> let r = ref 0. in
        for i = 0 to n-1 do
@@ -54,9 +62,15 @@ let in_circle triangle point =
   else 
     det mat1 < 0.;;
 
-let equal_edges (a,b) (c,d) = (a.x=c.x && a.y=c.y && b.x=d.x && b.y=d.y) || (a.x=d.x && a.y=d.y && b.x=c.x && b.y=c.y);;
+let equal_edges (a,b) (c,d) = 
+  (* point * point -> point * point -> bool
+     determines if two edges are the same *)
+    (a.x=c.x && a.y=c.y && b.x=d.x && b.y=d.y) 
+  ||(a.x=d.x && a.y=d.y && b.x=c.x && b.y=c.y);;
 
 let rec search_and_delete (e:point*point) l = match l with
+(* point * point -> (point * point) list -> bool * ((point * point) list)
+   determines if element e was in l and deletes its occurences *)
   |[]-> (false,[])
   |h::t->let(b,tl)=search_and_delete e t in
 	 if equal_edges h e then (true,tl) else (b,h::tl);;
@@ -76,12 +90,12 @@ let border (triangles:triangle_set) =
   border_edges (make_list_edges triangles);;
   
 let rec delete_triangles (triangles:triangle_set) point = match triangles with
-     [] -> ([]:triangle_set), triangles
-    |h::t when in_circle h point -> let del_set, remain_set = delete_triangles t point in
-                                    h::del_set, remain_set
-    |h::t -> let del_set, remain_set = delete_triangles t point in
-             del_set, h::remain_set;;
-             
+  |[] -> ([]:triangle_set), triangles
+  |h::t when in_circle h point -> let del_set, remain_set = delete_triangles t point in
+                                  h::del_set, remain_set
+  |h::t -> let del_set, remain_set = delete_triangles t point in
+           del_set, h::remain_set;;
+
 let add_point triangles point =
     let del_set, remain_set = delete_triangles triangles point in
     let del_set_border = border del_set in

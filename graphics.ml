@@ -1,4 +1,5 @@
 #load "graphics.cma";;
+#load "unix.cma";;
 #use "main.ml";;
 
 open Graphics;;

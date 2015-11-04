@@ -2,6 +2,14 @@
 (* the aim is similar to the triangulation in 2D, except now we use simplexes and not triangles, and a point in the given set must not be located inside the hemisphere of a simplex in the ibtained triangulation *)
 (* points are represented by the array of their coordinates, simplexes are array of points of length d+1, hyperfaces of those simplexes are represented but the list of their vertices *)
 
+let rec random d nb size = match nb with
+  |0->[]
+  |_-> let v = Array.make d 0. in
+	   for i = 0 to d-1 do
+           Array.set v i (Random.float(size));
+       done;
+       v::(random d (nb-1) size );;
+  
 let norm d p =
 (* int -> float array -> float
    calculates the square of the euclidian norm of point p belonging to a d-dimensional space *)
@@ -56,7 +64,7 @@ let ccw d points =
   for i = 1 to d-1 do
     for j = 0 to d-1 do
       mat.(i).(j)<- points.(i).(j)-.a.(j)
-    done9
+    done;
   done;
   det mat > 0.;;
 

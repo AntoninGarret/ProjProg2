@@ -7,9 +7,9 @@ graphics.ml contient les instructions relatives à l'affichage de la triangulati
 
 Dans l'interpréteur OCaml, une fois graphics.ml chargé avec #use "graphics.ml", utiliser :
 draw_points (random n 600 450);; pour afficher un nuage de n points
-draw_triangles (delaunay (random n 600 450));; pour afficher la triangulation d'un nuage de n points
-draw_triangles (delaunay_no_border_points (random n 600 450));; pour afficher la triangulation d'un nuage de n points sans points extremaux
-delaunay_step_by_step (random n 600 450);; pour afficher la triangulation étape par étape d'un nuage de n points
+draw_triangles (delaunay (random n 600 450) 600 450);; pour afficher la triangulation d'un nuage de n points
+draw_triangles (delaunay_no_border_points (random n 600 450) 600 450);; pour afficher la triangulation d'un nuage de n points sans points extremaux
+delaunay_step_by_step (random n 600 450) 600 450;; pour afficher la triangulation étape par étape d'un nuage de n points
 
 
 Delaunay_Multidimension.ml contient les instructions relatives à la triangulation de delaunay pour toute dimension supérieure à 2.
